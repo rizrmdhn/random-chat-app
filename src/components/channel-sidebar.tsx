@@ -53,7 +53,7 @@ export default function ChannelSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {channels.length === 0 ? (
-                <div className="text-muted-foreground px-4 py-3 text-sm">
+                <div className="px-4 py-3 text-sm text-muted-foreground">
                   No channels available. Create one to get started.
                 </div>
               ) : (
@@ -62,9 +62,9 @@ export default function ChannelSidebar() {
                     <SidebarMenuButton
                       onClick={() => {
                         if (channelId !== channel.id) {
-                          router.push(`/?channelId=${channel.id}`);
+                          router.push(`?channelId=${channel.id}`);
                         } else {
-                          router.push("/");
+                          router.push("chat");
                         }
                       }}
                     >

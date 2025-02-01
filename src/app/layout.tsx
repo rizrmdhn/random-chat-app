@@ -15,20 +15,16 @@ export const metadata: Metadata = {
 
 interface RootLayoutProps {
   children: React.ReactNode;
-  chat: React.ReactNode;
 }
 
-export default function RootLayout({
-  children,
-  chat,
-}: Readonly<RootLayoutProps>) {
+export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <TRPCReactProvider>
           <Providers>
             {children}
-            {chat}
+
             <Toaster position="bottom-right" richColors />
           </Providers>
         </TRPCReactProvider>

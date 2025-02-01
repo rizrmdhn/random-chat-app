@@ -2,6 +2,8 @@
 
 import { api } from "@/trpc/react";
 import { useSearchParams } from "next/navigation";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 
 export default function MessageList() {
   const utils = api.useUtils();
@@ -28,10 +30,10 @@ export default function MessageList() {
   );
 
   return (
-    <div className="flex min-h-[400px] flex-col space-y-4 p-4">
+    <div className="flex min-h-[400px] flex-col space-y-2 p-4">
       {messages.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-gray-500">No messages yet</p>
+          <p className="text-muted-foreground">No messages yet</p>
         </div>
       ) : (
         messages.map((message) => (
@@ -40,18 +42,24 @@ export default function MessageList() {
             className={`flex ${message.userId === me.id ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[70%] rounded-lg p-3 ${
-                message.userId
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-800"
-              }`}
+              className={`max-w-[70%] rounded-lg p-2 ${
+                message.userId === me.id
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-accent text-accent-foreground"
+              } shadow-sm`}
             >
-              {!message.userId && (
-                <p className="mb-1 text-sm font-semibold">
+              {message.userId !== me.id && (
+                <p className="mb-1 text-sm font-semibold text-primary">
                   {message.user.username}
                 </p>
               )}
-              <p>{message.message}</p>
+              {message.userId === me.id && (
+                <p className="mb-1 text-sm font-semibold text-primary">You</p>
+              )}
+              <p className="text-sm">{message.message}</p>
+              <p className="mt-1 text-right text-xs text-muted-foreground">
+                {format(new Date(message.createdAt), "HH:mm", { locale: id })}
+              </p>
             </div>
           </div>
         ))
