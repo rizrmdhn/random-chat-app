@@ -26,10 +26,12 @@ export function NewChannelDialog() {
       await utils.channels.getChannels.invalidate();
 
       globalSuccessToast("Channel created successfully");
-      setChannelName("");
     },
     onError: (error) => {
       globalErrorToast(error.message);
+    },
+    onSettled: () => {
+      setChannelName("");
     },
   });
 
