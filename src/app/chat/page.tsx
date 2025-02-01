@@ -9,6 +9,7 @@ import MessageArea from "@/components/message-area";
 import { getChannelById } from "@/server/queries/channels.queries";
 import { redirect } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
+import ChannelEmpty from "./channel-empty";
 
 interface ChatPage {
   searchParams: Promise<{
@@ -36,11 +37,11 @@ export default async function ChatPage({ searchParams }: ChatPage) {
           <ChannelSidebar />
         </HydrateClient>
         <SidebarInset>
-          <header className="flex shrink-0 items-center gap-2 border-b p-4">
+          <header className="sticky top-0 flex shrink-0 items-center gap-2 border-b bg-background p-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
           </header>
-          {channelId ? <MessageArea channelId={channelId} /> : null}
+          {channelId ? <MessageArea channelId={channelId} /> : <ChannelEmpty />}
         </SidebarInset>
       </div>
     </SidebarProvider>
