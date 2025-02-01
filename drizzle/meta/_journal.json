@@ -8,6 +8,13 @@
       "when": 1738391841439,
       "tag": "0000_dizzy_menace",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1738391866207,
+      "tag": "0001_shallow_darkhawk",
+      "breakpoints": true
     }
   ]
 }

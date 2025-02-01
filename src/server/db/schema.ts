@@ -47,6 +47,32 @@ export const users = createTable(
   ],
 );
 
+export const channels = createTable(
+  "channels",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .notNull()
+      .$default(() => uuidv7()),
+    name: varchar("name", { length: 50 }).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .$default(() => sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+  },
+  (table) => [
+    unique("channel_name_unique").on(table.name),
+    index("channel_name_idx").using("btree", table.name),
+    index("channel_idx").using("btree", table.id),
+  ],
+);
+
 export const messages = createTable(
   "messages",
   {
