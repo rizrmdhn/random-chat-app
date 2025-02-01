@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { encrypt } from "@/server/auth";
+import { env } from "./env";
 
 function generateRandomUsername(): string {
   const timestamp = Date.now();
@@ -7,27 +8,52 @@ function generateRandomUsername(): string {
 }
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get("token");
+  const token = request.cookies.get("guestToken");
 
   // If no token exists, create a new user session
   if (!token) {
-    const userId = crypto.randomUUID();
     const username = generateRandomUsername();
-    const now = new Date();
+
+    const responsePost = await fetch(
+      new URL("/api/generate/user", request.url),
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-generate-user-signature": env.GENERATE_USER_KEY,
+        },
+        body: JSON.stringify({
+          username: username,
+          password: "",
+        }),
+      },
+    );
+
+    if (!responsePost.ok) {
+      throw new Error("Failed to create user");
+    }
+
+    const userData = (await responsePost.json()) as {
+      id: string;
+      username: string;
+      type: string;
+      createdAt: string;
+      updatedAt: string;
+    };
 
     const payload = {
-      id: userId,
-      username: username,
-      createdAt: now.toISOString(),
-      updatedAt: null,
-      jti: crypto.randomUUID(),
+      id: userData.id,
+      username: userData.username,
+      createdAt: userData.createdAt,
+      updatedAt: userData.updatedAt,
+      jti: userData.id,
     };
 
     const newToken = await encrypt(payload);
     const response = NextResponse.next();
 
     response.cookies.set({
-      name: "token",
+      name: "guestToken",
       value: newToken,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

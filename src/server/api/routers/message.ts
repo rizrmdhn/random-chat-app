@@ -29,7 +29,7 @@ export const messageRouter = createTRPCRouter({
 
       await ctx.eventBus.publish("message.sent", {
         channelId,
-        message: message.message,
+        content: message.message,
         messageId: message.id,
         userId: ctx.user.id,
       });

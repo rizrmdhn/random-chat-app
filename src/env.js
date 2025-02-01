@@ -16,6 +16,8 @@ export const env = createEnv({
     MEMURAI_PASSWORD: z.string().default(""),
     MEMURAI_TLS: z.boolean().default(false),
     JWT_SECRET: z.string().min(32),
+    ENCRYPTION_KEY: z.string().min(32),
+    GENERATE_USER_KEY: z.string().min(32),
   },
 
   /**
@@ -39,6 +41,8 @@ export const env = createEnv({
     MEMURAI_PASSWORD: process.env.MEMURAI_PASSWORD,
     MEMURAI_TLS: Boolean(process.env.MEMURAI_TLS),
     JWT_SECRET: process.env.JWT_SECRET,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    GENERATE_USER_KEY: process.env.GENERATE_USER_KEY,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

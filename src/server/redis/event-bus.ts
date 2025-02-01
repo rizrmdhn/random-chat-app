@@ -3,10 +3,40 @@ import "server-only";
 import { Redis, type RedisOptions } from "ioredis";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import { EVENT_TYPES } from "@/types/event.types";
-import type { EventType, EventMap } from "@/types/event.types";
 import { type Session, type SessionUser } from "../auth";
 import redisConfig from "./config";
+import { env } from "@/env";
+
+// Event Types Definition
+export const EVENT_TYPES = [
+  "user.created",
+  "user.updated",
+  "user.deleted",
+  "channel.created",
+  "message.sent",
+  "message.received",
+  "message.deleted",
+  "message.updated",
+] as const;
+
+export type EventType = (typeof EVENT_TYPES)[number];
+
+type UserEvent = z.infer<typeof schemas.user>;
+type UserDeletedEvent = z.infer<typeof schemas.userDeleted>;
+type ChannelEvent = z.infer<typeof schemas.channel>;
+type MessageEvent = z.infer<typeof schemas.message>;
+
+// Update EventMap to use the inferred types
+export type EventMap = {
+  "user.created": UserEvent;
+  "user.updated": UserEvent;
+  "user.deleted": UserDeletedEvent;
+  "channel.created": ChannelEvent;
+  "message.sent": MessageEvent;
+  "message.received": MessageEvent;
+  "message.deleted": MessageEvent;
+  "message.updated": MessageEvent;
+};
 
 const REDIS_CHANNEL = "events";
 
@@ -56,10 +86,12 @@ const eventSchemas: Record<EventType, z.ZodType> = {
 export class EventBus {
   private publisher: Redis;
   private subscriber: Redis;
+  private isDevelopment: boolean;
 
   constructor(config: RedisOptions) {
     this.publisher = new Redis(config);
     this.subscriber = new Redis(config);
+    this.isDevelopment = env.NODE_ENV === "development";
     this.setupErrorHandlers();
   }
 
@@ -130,7 +162,9 @@ export class EventBus {
         .parse(data);
 
       if (!allowedTypes.includes(parsed.type as T)) {
-        console.log("Event type not in subscription list:", parsed.type);
+        if (this.isDevelopment) {
+          console.log("Event type not in subscription list:", parsed.type);
+        }
         return null;
       }
 
@@ -138,10 +172,12 @@ export class EventBus {
       const result = schema.safeParse(parsed.payload);
 
       if (!result.success) {
-        console.error(
-          `Invalid payload for ${parsed.type}:`,
-          result.error.errors,
-        );
+        if (this.isDevelopment) {
+          console.error(
+            `Invalid payload for ${parsed.type}:`,
+            result.error.errors,
+          );
+        }
         return null;
       }
 
@@ -150,7 +186,9 @@ export class EventBus {
         payload: result.data as EventMap[T],
       };
     } catch (error) {
-      console.error("Failed to parse message:", error);
+      if (this.isDevelopment) {
+        console.error("Failed to parse message:", error);
+      }
       return null;
     }
   }
@@ -161,6 +199,9 @@ export class EventBus {
     signal?: AbortSignal,
   ): AsyncIterableIterator<{ type: T; payload: EventMap[T] }> {
     await this.subscriber.subscribe(REDIS_CHANNEL);
+    if (this.isDevelopment) {
+      console.log(`Subscribed to events:`, types);
+    }
 
     const messageIterator = this.createMessageIterator(signal);
 
@@ -171,6 +212,9 @@ export class EventBus {
 
         const { type, payload } = event;
         if (this.shouldSkipEvent(type, payload, context)) {
+          if (this.isDevelopment) {
+            console.log(`Skipping event ${type} for user ${context.user.id}`);
+          }
           continue;
         }
 
@@ -178,6 +222,9 @@ export class EventBus {
       }
     } finally {
       await this.subscriber.unsubscribe(REDIS_CHANNEL);
+      if (this.isDevelopment) {
+        console.log("Unsubscribed from events");
+      }
     }
   }
 
@@ -198,13 +245,18 @@ export class EventBus {
     const result = schema.safeParse(event.payload);
 
     if (!result.success) {
-      throw new Error(
-        `Invalid payload for ${type}: ${result.error.errors
-          .map((e) => e.message)
-          .join(", ")}`,
-      );
+      const error = `Invalid payload for ${type}: ${result.error.errors
+        .map((e) => e.message)
+        .join(", ")}`;
+      if (this.isDevelopment) {
+        console.error(error);
+      }
+      throw new Error(error);
     }
 
+    if (this.isDevelopment) {
+      console.log(`Publishing event:`, event);
+    }
     await this.publisher.publish(REDIS_CHANNEL, JSON.stringify(event));
   }
 
@@ -221,6 +273,9 @@ export class EventBus {
 
   async cleanup(): Promise<void> {
     await Promise.all([this.publisher.quit(), this.subscriber.quit()]);
+    if (this.isDevelopment) {
+      console.log("EventBus cleaned up");
+    }
   }
 }
 

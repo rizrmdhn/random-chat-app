@@ -8,6 +8,12 @@ import "./src/env.js";
 const config = {
   reactStrictMode: true,
 
+  serverExternalPackages: [
+    "@node-rs/argon2",
+    "@node-rs/argon2-wasm32-wasi",
+    "bcrypt",
+  ],
+
   experimental: {
     reactCompiler: true,
   },

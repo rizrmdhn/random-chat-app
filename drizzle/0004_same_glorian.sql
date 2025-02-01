@@ -1,0 +1,1 @@
+ALTER TABLE "random-chat-app_users" ALTER COLUMN "password" DROP NOT NULL;

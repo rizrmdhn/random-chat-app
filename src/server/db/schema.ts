@@ -4,6 +4,7 @@
 import { sql } from "drizzle-orm";
 import {
   index,
+  pgEnum,
   pgTableCreator,
   timestamp,
   unique,
@@ -20,6 +21,8 @@ import { v7 as uuidv7 } from "uuid";
  */
 export const createTable = pgTableCreator((name) => `random-chat-app_${name}`);
 
+export const usersEnum = pgEnum("users", ["user", "guest"]);
+
 export const users = createTable(
   "users",
   {
@@ -28,7 +31,8 @@ export const users = createTable(
       .notNull()
       .$default(() => uuidv7()),
     username: varchar("username", { length: 50 }).notNull(),
-    password: varchar("password", { length: 150 }).notNull(),
+    password: varchar("password", { length: 150 }),
+    type: usersEnum("type").notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
       mode: "string",

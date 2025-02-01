@@ -33,8 +33,12 @@ export default function MessageForm() {
     e.preventDefault();
 
     if (!message.trim() || !channelId) {
+      globalErrorToast("Message or channel is missing");
       return;
     }
+
+    console.log("Channel ID", channelId);
+    console.log("Sending message", message);
 
     sentMessageMutation.mutate({
       channelId,

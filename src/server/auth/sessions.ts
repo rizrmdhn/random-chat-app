@@ -12,7 +12,9 @@ export const getCurrentSession = cache(
     user: SessionUser | null;
   }> => {
     const awaitedCookies = await cookies();
-    const token = awaitedCookies.get("token")?.value;
+    const token =
+      awaitedCookies.get("token")?.value ??
+      awaitedCookies.get("guestToken")?.value;
 
     if (!token) {
       return { session: null, user: null };
