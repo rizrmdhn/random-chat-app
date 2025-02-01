@@ -121,7 +121,6 @@ export class EventBus {
   ): { type: T; payload: EventMap[T] } | null {
     try {
       const data = JSON.parse(message) as unknown;
-      console.log("Received event data:", data);
 
       const parsed = z
         .object({
@@ -129,8 +128,6 @@ export class EventBus {
           payload: z.unknown(),
         })
         .parse(data);
-
-      console.log("Parsed event:", parsed);
 
       if (!allowedTypes.includes(parsed.type as T)) {
         console.log("Event type not in subscription list:", parsed.type);
@@ -174,11 +171,9 @@ export class EventBus {
 
         const { type, payload } = event;
         if (this.shouldSkipEvent(type, payload, context)) {
-          console.log("Event filtered out:", type);
           continue;
         }
 
-        console.log("Yielding event:", type);
         yield { type, payload } as { type: T; payload: EventMap[T] };
       }
     } finally {
