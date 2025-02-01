@@ -6,70 +6,14 @@ import { v4 as uuidv4 } from "uuid";
 import { type Session, type SessionUser } from "../auth";
 import redisConfig from "./config";
 import { env } from "@/env";
-
-// Event Types Definition
-export const EVENT_TYPES = [
-  "user.created",
-  "user.updated",
-  "user.deleted",
-  "channel.created",
-  "message.sent",
-  "message.received",
-  "message.deleted",
-  "message.updated",
-] as const;
-
-export type EventType = (typeof EVENT_TYPES)[number];
-
-type UserEvent = z.infer<typeof schemas.user>;
-type UserDeletedEvent = z.infer<typeof schemas.userDeleted>;
-type ChannelEvent = z.infer<typeof schemas.channel>;
-type MessageEvent = z.infer<typeof schemas.message>;
-
-// Update EventMap to use the inferred types
-export type EventMap = {
-  "user.created": UserEvent;
-  "user.updated": UserEvent;
-  "user.deleted": UserDeletedEvent;
-  "channel.created": ChannelEvent;
-  "message.sent": MessageEvent;
-  "message.received": MessageEvent;
-  "message.deleted": MessageEvent;
-  "message.updated": MessageEvent;
-};
+import { schemas } from "./event-schema";
+import { EVENT_TYPES, type EventMap, type EventType } from "./event-type";
 
 const REDIS_CHANNEL = "events";
 
 type FilterContext = {
   session: Session;
   user: SessionUser;
-};
-
-// Base schema with utility function for date handling
-const baseEventSchema = z.object({
-  id: z.string().uuid(),
-  timestamp: z.union([z.date(), z.string().transform((str) => new Date(str))]),
-});
-
-// Event-specific schemas
-const schemas = {
-  user: baseEventSchema.extend({
-    userId: z.string(),
-    email: z.string().email(),
-    name: z.string(),
-  }),
-  userDeleted: baseEventSchema.extend({
-    userId: z.string(),
-  }),
-  channel: baseEventSchema.extend({
-    channelId: z.string(),
-  }),
-  message: baseEventSchema.extend({
-    messageId: z.string(),
-    channelId: z.string(),
-    userId: z.string(),
-    content: z.string(),
-  }),
 };
 
 const eventSchemas: Record<EventType, z.ZodType> = {

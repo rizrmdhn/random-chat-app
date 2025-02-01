@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { EVENT_TYPES } from "@/server/redis/event-bus";
+import { EVENT_TYPES } from "@/server/redis/event-type";
 
 export const eventRouter = createTRPCRouter({
   subscribe: protectedProcedure
