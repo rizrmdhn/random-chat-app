@@ -18,6 +18,7 @@ import { NewChannelDialog } from "./new-channel-dialog";
 import { ModeToggle } from "./mode-toggle";
 import { api } from "@/trpc/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import LogoutButton from "./logout-button";
 
 export default function ChannelSidebar() {
   const utils = api.useUtils();
@@ -80,6 +81,7 @@ export default function ChannelSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <ModeToggle />
+        <LogoutButton />
       </SidebarFooter>
     </Sidebar>
   );
