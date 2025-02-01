@@ -1,3 +1,5 @@
+"use client";
+
 import { Hash } from "lucide-react";
 import {
   Sidebar,
@@ -14,14 +16,16 @@ import {
 } from "@/components/ui/sidebar";
 import { NewChannelDialog } from "./new-channel-dialog";
 import { ModeToggle } from "./mode-toggle";
-
-const channels = [
-  { id: 1, name: "general" },
-  { id: 2, name: "random" },
-  { id: 3, name: "support" },
-];
+import { api } from "@/trpc/react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ChannelSidebar() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const channelId = searchParams.get("channelId");
+
+  const [channels] = api.channels.getChannels.useSuspenseQuery();
+
   return (
     <Sidebar className="w-64 flex-shrink-0 border-r">
       <SidebarHeader className="p-4">
@@ -36,16 +40,28 @@ export default function ChannelSidebar() {
           </div>
           <SidebarGroupContent>
             <SidebarMenu>
-              {channels.map((channel) => (
-                <SidebarMenuItem key={channel.id}>
-                  <SidebarMenuButton asChild>
-                    <button className="w-full text-left">
+              {channels.length === 0 ? (
+                <div className="text-muted-foreground px-4 py-3 text-sm">
+                  No channels available. Create one to get started.
+                </div>
+              ) : (
+                channels.map((channel) => (
+                  <SidebarMenuItem key={channel.id}>
+                    <SidebarMenuButton
+                      onClick={() => {
+                        if (channelId !== channel.id) {
+                          router.push(`/?channelId=${channel.id}`);
+                        } else {
+                          router.push("/");
+                        }
+                      }}
+                    >
                       <Hash className="mr-2 inline h-4 w-4" />
                       {channel.name}
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,44 +10,49 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, PlusIcon } from "lucide-react";
+import { api } from "@/trpc/react";
+import { globalErrorToast, globalSuccessToast } from "@/lib/toast";
 
 export function NewChannelDialog() {
-  const [channelName, setChannelName] = useState("")
+  const utils = api.useUtils();
+  const [channelName, setChannelName] = useState("");
+
+  const createChannelMutation = api.channels.create.useMutation({
+    onSuccess: async () => {
+      await utils.channels.getChannels.invalidate();
+
+      globalSuccessToast("Channel created successfully");
+      setChannelName("");
+    },
+    onError: (error) => {
+      globalErrorToast(error.message);
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Implement channel creation logic here
-    console.log("Creating new channel:", channelName)
-    setChannelName("")
-  }
+    e.preventDefault();
+
+    createChannelMutation.mutate({ name: channelName });
+  };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="ghost" size="sm" className="h-5 w-5 p-0">
           <span className="sr-only">New Channel</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
-          >
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-          </svg>
+          <PlusIcon className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Channel</DialogTitle>
-          <DialogDescription>Enter a name for your new channel. Click save when you're done.</DialogDescription>
+          <DialogDescription>
+            Enter a name for your new channel. Click save when you&apos;re done.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -56,6 +61,7 @@ export function NewChannelDialog() {
                 Name
               </Label>
               <Input
+                disabled={createChannelMutation.isPending}
                 id="channel-name"
                 value={channelName}
                 onChange={(e) => setChannelName(e.target.value)}
@@ -64,11 +70,18 @@ export function NewChannelDialog() {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Create Channel</Button>
+            <Button
+              type="submit"
+              disabled={createChannelMutation.isPending || !channelName}
+            >
+              {createChannelMutation.isPending && (
+                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+              )}
+              Create Channel
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

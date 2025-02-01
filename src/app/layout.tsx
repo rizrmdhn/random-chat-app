@@ -5,6 +5,7 @@ import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import { Providers } from "./providers";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -12,14 +13,24 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
+interface RootLayoutProps {
+  children: React.ReactNode;
+  chat: React.ReactNode;
+}
+
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+  chat,
+}: Readonly<RootLayoutProps>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <TRPCReactProvider>
-          <Providers>{children}</Providers>
+          <Providers>
+            {children}
+            {chat}
+            <Toaster position="bottom-right" richColors />
+          </Providers>
         </TRPCReactProvider>
       </body>
     </html>
