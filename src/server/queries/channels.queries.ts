@@ -31,9 +31,7 @@ export async function createChannel(name: string) {
     .values({
       name,
     })
-    .returning({
-      insertedId: channels.id,
-    })
+    .returning()
     .execute();
 
   if (!data) {

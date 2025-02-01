@@ -21,6 +21,7 @@ export const eventRouter = createTRPCRouter({
           filterContext,
           signal,
         )) {
+          console.log("event", event);
           yield event;
         }
       } catch (error) {

@@ -30,7 +30,7 @@ export default async function ChatPage({ searchParams }: ChatPage) {
         <HydrateClient>
           <ChannelSidebar />
         </HydrateClient>
-        {channelId ? <MessageArea /> : null}
+        {channelId ? <MessageArea channelId={channelId} /> : null}
       </div>
     </SidebarProvider>
   );

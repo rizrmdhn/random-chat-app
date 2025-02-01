@@ -20,11 +20,23 @@ import { api } from "@/trpc/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function ChannelSidebar() {
+  const utils = api.useUtils();
   const router = useRouter();
   const searchParams = useSearchParams();
   const channelId = searchParams.get("channelId");
 
   const [channels] = api.channels.getChannels.useSuspenseQuery();
+
+  api.events.subscribe.useSubscription(
+    {
+      types: ["channel.created"],
+    },
+    {
+      onData: () => {
+        void utils.channels.getChannels.invalidate();
+      },
+    },
+  );
 
   return (
     <Sidebar className="w-64 flex-shrink-0 border-r">
