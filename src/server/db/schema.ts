@@ -80,7 +80,16 @@ export const messages = createTable(
       .primaryKey()
       .notNull()
       .$default(() => uuidv7()),
-    userId: uuid("user_id").notNull(),
+    channelId: uuid("channel_id")
+      .references(() => channels.id, {
+        onDelete: "no action",
+      })
+      .notNull(),
+    userId: uuid("user_id")
+      .references(() => users.id, {
+        onDelete: "no action",
+      })
+      .notNull(),
     message: varchar("message", { length: 500 }).notNull(),
     createdAt: timestamp("created_at", {
       withTimezone: true,
@@ -89,6 +98,10 @@ export const messages = createTable(
       .$default(() => sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    deletedAt: timestamp("deleted_at", {
       withTimezone: true,
       mode: "string",
     }),
