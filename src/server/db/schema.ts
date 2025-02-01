@@ -4,11 +4,12 @@
 import { sql } from "drizzle-orm";
 import {
   index,
-  integer,
   pgTableCreator,
   timestamp,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+import { v7 as uuidv7 } from "uuid";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -21,16 +22,19 @@ export const createTable = pgTableCreator((name) => `random-chat-app_${name}`);
 export const posts = createTable(
   "post",
   {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    id: uuid("id")
+      .primaryKey()
+      .notNull()
+      .$default(() => uuidv7()),
     name: varchar("name", { length: 256 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date()
+      () => new Date(),
     ),
   },
   (example) => ({
     nameIndex: index("name_idx").on(example.name),
-  })
+  }),
 );

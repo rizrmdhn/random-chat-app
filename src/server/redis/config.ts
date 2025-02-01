@@ -2,7 +2,7 @@ import { env } from "@/env";
 import { type RedisOptions } from "ioredis";
 
 // Memurai Config
-const memuraiConfig = {
+const redisConfig = {
   host: env.MEMURAI_HOST,
   port: parseInt(env.MEMURAI_PORT, 10),
   password: env.MEMURAI_PASSWORD,
@@ -15,4 +15,4 @@ const memuraiConfig = {
   connectTimeout: 10000,
 } satisfies RedisOptions;
 
-export default memuraiConfig;
+export default redisConfig;

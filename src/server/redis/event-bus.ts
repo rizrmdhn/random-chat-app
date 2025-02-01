@@ -1,72 +1,103 @@
-// src/server/redis/eventBus.ts
-import { Redis } from "ioredis";
-import { v4 as uuidv4 } from "uuid";
-import { eventEmitter } from "./event-emitter";
+import "server-only";
+
+import { Redis, type RedisOptions } from "ioredis";
 import { z } from "zod";
-import type { EventType, EventMap } from "@/types/event.types";
+import { v4 as uuidv4 } from "uuid";
 import { EVENT_TYPES } from "@/types/event.types";
-import {
-  postDeletedEventSchema,
-  postEventSchema,
-  userDeletedEventSchema,
-  userEventSchema,
-} from "./event-schema";
-import { isValidEvent } from "@/utils/type-guards";
+import type { EventType, EventMap } from "@/types/event.types";
+import { type Session, type SessionUser } from "../auth";
+import redisConfig from "./config";
 
-// First, define the raw event structure
-const rawEventSchema = z.object({
+const REDIS_CHANNEL = "events";
+
+type FilterContext = {
+  session: Session;
+  user: SessionUser;
+};
+
+const eventSchema = z.object({
   type: z.enum(EVENT_TYPES),
-  payload: z.unknown(), // Start with unknown for raw JSON
+  payload: z.unknown(),
 });
-
-type RawEvent = z.infer<typeof rawEventSchema>;
 
 export class EventBus {
   private publisher: Redis;
   private subscriber: Redis;
 
-  constructor(redisUrl: string) {
-    this.publisher = new Redis(redisUrl);
-    this.subscriber = new Redis(redisUrl);
-    this.initialize();
+  constructor(config: RedisOptions) {
+    this.publisher = new Redis(config);
+    this.subscriber = new Redis(config);
   }
 
-  private initialize(): void {
-    void this.subscriber.subscribe("events");
+  async *subscribe<T extends EventType>(
+    types: T[],
+    context: FilterContext,
+    signal?: AbortSignal,
+  ): AsyncIterableIterator<{ type: T; payload: EventMap[T] }> {
+    await this.subscriber.subscribe(REDIS_CHANNEL);
 
-    this.subscriber.on("message", (_channel: string, message: string) => {
-      try {
-        const data = JSON.parse(message) as unknown;
-        const parsedEvent = rawEventSchema.safeParse(data);
+    try {
+      while (!signal?.aborted) {
+        const [channel, message] = await new Promise<[string, string]>(
+          (resolve, reject) => {
+            const messageHandler = (chan: string, msg: string) => {
+              cleanup();
+              resolve([chan, msg]);
+            };
 
-        if (
-          !parsedEvent.success ||
-          !isValidEvent(parsedEvent.data, parsedEvent.data.type)
-        ) {
-          throw new Error("Invalid event format");
-        }
+            const errorHandler = (err: Error) => {
+              cleanup();
+              reject(err);
+            };
 
-        const { type, payload } = parsedEvent.data;
+            const cleanup = () => {
+              this.subscriber.removeListener("message", messageHandler);
+              this.subscriber.removeListener("error", errorHandler);
+            };
 
-        // Now TypeScript knows these are type-safe
-        eventEmitter.emit(type, payload);
-      } catch (error) {
-        console.error("Failed to parse event:", error);
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
-        eventEmitter.emit(
-          "error",
-          new Error(`Event parsing failed: ${errorMessage}`),
+            this.subscriber.once("message", messageHandler);
+            this.subscriber.once("error", errorHandler);
+
+            signal?.addEventListener("abort", () => {
+              cleanup();
+              reject(new Error("Aborted"));
+            });
+          },
         );
+
+        if (channel !== REDIS_CHANNEL) continue;
+
+        try {
+          const data = JSON.parse(message) as unknown;
+          const parsed = eventSchema.parse(data);
+
+          if (!types.includes(parsed.type as T)) continue;
+
+          // Type guard for the payload
+          if (!isValidPayload(parsed.type, parsed.payload)) continue;
+
+          // Skip if should filter
+          if (shouldSkipEvent(parsed.type, parsed.payload, context)) continue;
+
+          yield {
+            type: parsed.type as T,
+            payload: parsed.payload as EventMap[T],
+          };
+        } catch (error) {
+          console.error("Failed to parse message:", error);
+          continue;
+        }
       }
-    });
+    } finally {
+      await this.subscriber.unsubscribe(REDIS_CHANNEL);
+    }
   }
 
-  public async publish<T extends EventType>(
+  async publish<T extends EventType>(
     type: T,
     payload: Omit<EventMap[T], "id" | "timestamp">,
   ): Promise<void> {
-    const event: RawEvent = {
+    const event = {
       type,
       payload: {
         ...payload,
@@ -75,36 +106,54 @@ export class EventBus {
       },
     };
 
-    // Validate before publishing
-    switch (event.type) {
-      case "user.created":
-      case "user.updated": {
-        userEventSchema.parse(event.payload);
-        break;
-      }
-      case "user.deleted": {
-        userDeletedEventSchema.parse(event.payload);
-        break;
-      }
-      case "post.created":
-      case "post.updated": {
-        postEventSchema.parse(event.payload);
-        break;
-      }
-      case "post.deleted": {
-        postDeletedEventSchema.parse(event.payload);
-        break;
-      }
-      default: {
-        throw new Error(`Unhandled event type: ${String(event.type)}`);
-      }
-    }
-
-    await this.publisher.publish("events", JSON.stringify(event));
+    await this.publisher.publish(REDIS_CHANNEL, JSON.stringify(event));
   }
 
-  public async cleanup(): Promise<void> {
+  async cleanup(): Promise<void> {
     await this.publisher.quit();
     await this.subscriber.quit();
   }
 }
+
+// Type guard for event payloads
+function isValidPayload<T extends EventType>(
+  type: T,
+  payload: unknown,
+): payload is EventMap[T] {
+  if (!payload || typeof payload !== "object") return false;
+
+  switch (type) {
+    case "user.created":
+    case "user.updated":
+      return (
+        "userId" in payload &&
+        "email" in payload &&
+        "name" in payload &&
+        "id" in payload &&
+        "timestamp" in payload
+      );
+    case "user.deleted":
+      return "userId" in payload && "id" in payload && "timestamp" in payload;
+    default:
+      return false;
+  }
+}
+
+// Event filtering logic
+function shouldSkipEvent<T extends EventType>(
+  type: T,
+  payload: EventMap[T],
+  context: FilterContext,
+): boolean {
+  switch (type) {
+    case "user.created":
+    case "user.updated":
+    case "user.deleted":
+      return "userId" in payload && payload.userId === context.user.id;
+    default:
+      return false;
+  }
+}
+
+// Create singleton instance
+export const eventBus = new EventBus(redisConfig);

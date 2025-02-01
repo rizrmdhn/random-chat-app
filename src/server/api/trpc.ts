@@ -11,7 +11,8 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "@/server/db";
-import getCurrentSession from "../auth/sessions";
+import getCurrentSession from "@/server/auth/sessions";
+import { eventBus } from "@/server/redis/event-bus";
 
 /**
  * 1. CONTEXT
@@ -32,6 +33,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
     db,
     session,
     user,
+    eventBus,
     ...opts,
   };
 };
