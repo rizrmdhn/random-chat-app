@@ -38,7 +38,7 @@ export const env = createEnv({
     MEMURAI_PORT: process.env.MEMURAI_PORT,
     MEMURAI_PASSWORD: process.env.MEMURAI_PASSWORD,
     MEMURAI_TLS: Boolean(process.env.MEMURAI_TLS),
-    JWT_SECRET: process.env.JWT_SECRET_KEY,
+    JWT_SECRET: process.env.JWT_SECRET,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

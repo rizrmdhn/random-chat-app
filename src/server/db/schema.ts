@@ -6,6 +6,7 @@ import {
   index,
   pgTableCreator,
   timestamp,
+  unique,
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -19,22 +20,56 @@ import { v7 as uuidv7 } from "uuid";
  */
 export const createTable = pgTableCreator((name) => `random-chat-app_${name}`);
 
-export const posts = createTable(
-  "post",
+export const users = createTable(
+  "users",
   {
     id: uuid("id")
       .primaryKey()
       .notNull()
       .$default(() => uuidv7()),
-    name: varchar("name", { length: 256 }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
+    username: varchar("username", { length: 50 }).notNull(),
+    password: varchar("password", { length: 150 }).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .$default(() => sql`CURRENT_TIMESTAMP`)
       .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),
-    ),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
   },
-  (example) => ({
-    nameIndex: index("name_idx").on(example.name),
-  }),
+  (table) => [
+    unique("username_unique").on(table.username),
+    index("username_idx").using("btree", table.username),
+    index("user_idx").using("btree", table.id),
+  ],
+);
+
+export const messages = createTable(
+  "messages",
+  {
+    id: uuid("id")
+      .primaryKey()
+      .notNull()
+      .$default(() => uuidv7()),
+    userId: uuid("user_id").notNull(),
+    message: varchar("message", { length: 500 }).notNull(),
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+      mode: "string",
+    })
+      .$default(() => sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+    updatedAt: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+  },
+  (table) => [
+    index("messages_message_idx").using("btree", table.message),
+    index("messages_user_idx").using("btree", table.userId),
+    index("messages_message_id_idx").using("btree", table.id),
+  ],
 );
