@@ -1,29 +1,43 @@
-# Create T3 App
+# Random Chat App
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This is a [T3 Stack](https://create.t3.gg/) project with real-time chat functionality.
 
-## What's next? How do I make an app with this?
+## Tech Stack
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+- [Next.js](https://nextjs.org) - React framework
+- [NextAuth.js](https://next-auth.js.org) - Authentication
+- [Drizzle ORM](https://orm.drizzle.team) - Database ORM
+- [Redis](https://redis.io) - Real-time pub/sub
+- [Tailwind CSS](https://tailwindcss.com) - Styling
+- [tRPC](https://trpc.io) - End-to-end typesafe API
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Features
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- Real-time chat using Redis pub/sub
+- User authentication with NextAuth.js
+- PostgreSQL database with Drizzle ORM
+- Type-safe API endpoints with tRPC
+- Modern UI with Tailwind CSS
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies with `pnpm install`
+3. Copy `.env.example` to `.env` and configure environment variables
+4. Run migrations with `pnpm db:push`
+5. Start the development server with `pnpm dev`
 
 ## Learn More
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+To learn more about the technologies used:
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+- [T3 Stack Documentation](https://create.t3.gg/)
+- [Redis Pub/Sub Documentation](https://redis.io/docs/interact/pubsub/)
+- [Drizzle ORM Documentation](https://orm.drizzle.team/docs/overview)
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+## Deployment
 
-## How do I deploy this?
+Deploy using:
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+- [Vercel](https://create.t3.gg/en/deployment/vercel)
+- [Docker](https://create.t3.gg/en/deployment/docker)

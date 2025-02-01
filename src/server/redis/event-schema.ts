@@ -18,6 +18,7 @@ export const schemas = {
   }),
   channel: baseEventSchema.extend({
     channelId: z.string(),
+    name: z.string(),
   }),
   message: baseEventSchema.extend({
     messageId: z.string(),
