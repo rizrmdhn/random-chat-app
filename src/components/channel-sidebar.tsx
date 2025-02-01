@@ -1,7 +1,8 @@
-import { Hash } from "lucide-react"
+import { Hash } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -10,14 +11,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { NewChannelDialog } from "./new-channel-dialog"
+} from "@/components/ui/sidebar";
+import { NewChannelDialog } from "./new-channel-dialog";
+import { ModeToggle } from "./mode-toggle";
 
 const channels = [
   { id: 1, name: "general" },
   { id: 2, name: "random" },
   { id: 3, name: "support" },
-]
+];
 
 export default function ChannelSidebar() {
   return (
@@ -38,7 +40,7 @@ export default function ChannelSidebar() {
                 <SidebarMenuItem key={channel.id}>
                   <SidebarMenuButton asChild>
                     <button className="w-full text-left">
-                      <Hash className="mr-2 h-4 w-4 inline" />
+                      <Hash className="mr-2 inline h-4 w-4" />
                       {channel.name}
                     </button>
                   </SidebarMenuButton>
@@ -48,7 +50,9 @@ export default function ChannelSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <ModeToggle />
+      </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
-
