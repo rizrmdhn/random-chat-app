@@ -17,7 +17,7 @@ export default function MessageArea({ channelId }: MessageAreaProps) {
           <MessageList />
         </HydrateClient>
       </div>
-      <div className="border-t p-4">
+      <div className="sticky bottom-0 border-t bg-accent p-4">
         <MessageForm />
       </div>
     </main>
