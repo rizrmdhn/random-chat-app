@@ -11,6 +11,11 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    MEMURAI_HOST: z.string(),
+    MEMURAI_PORT: z.string().default("6379"),
+    MEMURAI_PASSWORD: z.string().default(""),
+    MEMURAI_TLS: z.boolean().default(false),
+    JWT_SECRET: z.string().min(32),
   },
 
   /**
@@ -29,6 +34,11 @@ export const env = createEnv({
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
+    MEMURAI_HOST: process.env.MEMURAI_HOST,
+    MEMURAI_PORT: process.env.MEMURAI_PORT,
+    MEMURAI_PASSWORD: process.env.MEMURAI_PASSWORD,
+    MEMURAI_TLS: Boolean(process.env.MEMURAI_TLS),
+    JWT_SECRET: process.env.JWT_SECRET_KEY,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
