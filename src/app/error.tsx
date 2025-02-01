@@ -22,7 +22,14 @@ export default function Error({
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>Something went wrong!</AlertDescription>
+          <AlertDescription>
+            Something went wrong!
+            {error.digest && (
+              <div className="text-muted-foreground text-sm">
+                Error message: {error.message}
+              </div>
+            )}
+          </AlertDescription>
         </Alert>
         <Button variant="default" className="w-full" onClick={() => reset()}>
           Try again
